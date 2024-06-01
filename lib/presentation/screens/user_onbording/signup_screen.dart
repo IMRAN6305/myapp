@@ -131,7 +131,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           gender: selectedGender.toString(),
                           phoneNumber: phoneNumber.text.toString(),
                           password: password.text.toString());
-                      firebaseFirestore.collection("users").add(newUser.toDoc()).then((value){
+                          firebaseFirestore.collection("users").doc(crad.user!.uid).set(newUser.toDoc()).then((value){
                         CustomSnackbar.show(
                           context,
                           'Successfully Register',
