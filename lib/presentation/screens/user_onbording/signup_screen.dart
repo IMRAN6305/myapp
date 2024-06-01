@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:myapp/data/models/user_model.dart';
 import 'package:myapp/presentation/custom_widgets/textfiled.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../custom_widgets/eleveated_button.dart';
+import '../../custom_widgets/snack_bar.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -24,6 +27,8 @@ class _SignupScreenState extends State<SignupScreen> {
 
   String? selectedGender;
 
+  FirebaseAuth fireauth = FirebaseAuth.instance;
+  FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -113,21 +118,56 @@ class _SignupScreenState extends State<SignupScreen> {
                 AppCustomElevatedBtn(
                   mTitle: 'Sign Up',
                   onTap: () async {
-                    // try {
-                    //   var crad = await fireauth.createUserWithEmailAndPassword(
-                    //     email: email.text.toString(),
-                    //     password: password.text.toString(),
-                    //   );
-                    //   print(crad.user!.uid);
-                    // } on FirebaseAuthException catch (e) {
-                    //   if (e.code == 'weak-password') {
-                    //     print('The password provided is too weak.');
-                    //   } else if (e.code == 'email-already-in-use') {
-                    //     print('The account already exists for that email.');
-                    //   }
-                    // } catch (e) {
-                    //   print(e);
-                    // }
+                    try {
+                      var crad = await fireauth.createUserWithEmailAndPassword(
+                        email: email.text.toString(),
+                        password: password.text.toString(),
+                      );
+                      print(crad.user!.uid);
+
+                      UserModel newUser = UserModel(
+                          userName: userName.text.toString(),
+                          email: email.text.toString(),
+                          gender: selectedGender.toString(),
+                          phoneNumber: phoneNumber.text.toString(),
+                          password: password.text.toString());
+                      firebaseFirestore.collection("users").add(newUser.toDoc()).then((value){
+                        CustomSnackbar.show(
+                          context,
+                          'Successfully Register',
+                          backgroundColor: Colors.blue,
+
+                        );
+                        Navigator.pop(context);
+                      });
+                    } on FirebaseAuthException catch (e) {
+                      if (e.code == 'weak-password') {
+                        CustomSnackbar.show(
+                          context,
+                          'The password provided is too weak.',
+                          backgroundColor: Colors.red,
+
+                        );
+                        print('The password provided is too weak.');
+                      } else if (e.code == 'email-already-in-use') {
+                        CustomSnackbar.show(
+                          context,
+                          'The account already exists for that email.',
+                          backgroundColor: Colors.red,
+
+                        );
+                        print('The account already exists for that email.');
+                      }
+                    } catch (e) {
+                      CustomSnackbar.show(
+                        context,
+                        'Unknown error',
+                        backgroundColor: Colors.red,
+                        textColor: Colors.white,
+                        actionColor: Colors.red,
+                      );
+                      print(e);
+                    }
                   },
                 ),
                 const SizedBox(

@@ -1,15 +1,19 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:myapp/presentation/screens/home_screen.dart';
 import 'package:myapp/presentation/screens/user_onbording/signup_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../domin/app_data.dart';
 import '../../custom_widgets/eleveated_button.dart';
+import '../../custom_widgets/snack_bar.dart';
 import '../../custom_widgets/textfiled.dart';
-
 
 class LoginScreen extends StatelessWidget {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
-
+  FirebaseAuth fireauth = FirebaseAuth.instance;
   LoginScreen({super.key});
 
   @override
@@ -62,7 +66,57 @@ class LoginScreen extends StatelessWidget {
               ),
               AppCustomElevatedBtn(
                 mTitle: ' Login',
-                onTap: () {},
+                onTap: () async {
+                  try {
+                    final credential = await fireauth
+                        .signInWithEmailAndPassword(
+                            email: email.text.toString(),
+                            password: password.text.toString())
+                        .then((value) async {
+                      final prefs = await SharedPreferences.getInstance();
+                      prefs.setBool(AppData.Login, true);
+                      CustomSnackbar.show(
+                        context,
+                        'Successfully login',
+                        backgroundColor: Colors.blue,
+
+                      );
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => HomeScreen(),
+                          ));
+                    });
+                  } on FirebaseAuthException catch (e) {
+                    if (e.code == 'user-not-found') {
+                      CustomSnackbar.show(
+                        context,
+                        'No user found for that email.',
+                        backgroundColor: Colors.red,
+
+                      );
+                      print('No user found for that email.');
+                    } else if (e.code == 'wrong-password') {
+                      CustomSnackbar.show(
+                        context,
+                        'Wrong password provided for that user.',
+                        backgroundColor: Colors.red,
+
+                      );
+                      print('Wrong password provided for that user.');
+                    }
+                  } catch (e) {
+                    print("this is wrong data");
+                    CustomSnackbar.show(
+                      context,
+                      'Unknown error',
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      actionColor: Colors.red,
+                    );
+                    print(e);
+                  }
+                },
               ),
               const SizedBox(
                 height: 10.0,
@@ -90,7 +144,6 @@ class LoginScreen extends StatelessWidget {
                       },
                   )
                 ],
-            
               ))
             ],
           ),
