@@ -14,3 +14,11 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+```bash
+# Example
+git clone https://github.com/IMRAN6305/myapp.git
+cd myapp
+flutter clean
+flutter pub get
+flutter run
